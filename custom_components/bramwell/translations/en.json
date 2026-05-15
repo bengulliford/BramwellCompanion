@@ -1,0 +1,32 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Bramwell",
+        "description": "Point this companion at your Bramwell brain. The brain registers Alfred as a HA conversation.agent — pick it from the Assist pipeline dropdown to talk to Alfred from a Voice PE puck or any HA Assist surface. Optionally point at a Kokoro TTS endpoint for the canonical Alfred voice.",
+        "data": {
+          "brain_url": "Brain URL",
+          "api_token": "Brain API token",
+          "kokoro_url": "Kokoro URL (optional)",
+          "kokoro_voice": "Kokoro voice"
+        },
+        "data_description": {
+          "brain_url": "The URL where your Bramwell brain is reachable from Home Assistant. Default works when Bramwell runs as a HA add-on.",
+          "api_token": "Long-lived bearer token issued by the Bramwell dashboard (Settings → API tokens).",
+          "kokoro_url": "Optional. URL of a Kokoro TTS endpoint (e.g. `http://homeassistant.local:8880` for Bramwell's docker-compose `voice` profile). Leave blank to use HA's default TTS or the community Wyoming-Kokoro add-on instead.",
+          "kokoro_voice": "Kokoro voice id. Default `bm_george` is the canonical British-male Alfred."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Couldn't reach the brain at that URL. Check the URL, your network, and that Bramwell is running.",
+      "invalid_auth": "The brain rejected the API token. Issue a new one in the Bramwell dashboard.",
+      "unexpected_response": "The URL responded but didn't look like a Bramwell brain. Double-check the URL.",
+      "kokoro_unreachable": "Couldn't reach Kokoro at that URL. Check the URL and that the `voice` compose profile is running, or leave blank to disable Bramwell TTS.",
+      "unknown": "Something went wrong. Check the Home Assistant logs for details."
+    },
+    "abort": {
+      "already_configured": "This Bramwell brain is already configured."
+    }
+  }
+}

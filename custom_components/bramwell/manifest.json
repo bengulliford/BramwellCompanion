@@ -1,0 +1,13 @@
+{
+  "domain": "bramwell",
+  "name": "Bramwell Companion",
+  "version": "0.1.0",
+  "documentation": "https://github.com/bengulliford/HomeClaw/tree/dev/companion",
+  "issue_tracker": "https://github.com/bengulliford/HomeClaw/issues",
+  "codeowners": ["@bengulliford"],
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "integration_type": "service",
+  "dependencies": ["conversation", "tts"],
+  "requirements": []
+}
