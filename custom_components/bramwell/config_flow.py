@@ -22,8 +22,8 @@ from .const import (
     CONF_BRAIN_URL,
     CONF_KOKORO_URL,
     CONF_KOKORO_VOICE,
+    CONNECT_TIMEOUT_SECONDS,
     CONVERSATION_ENDPOINT,
-    CONVERSATION_TIMEOUT_SECONDS,
     DEFAULT_BRAIN_URL,
     DEFAULT_KOKORO_URL,
     DEFAULT_KOKORO_VOICE,
@@ -113,7 +113,7 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
             "language": "en",
         }
         try:
-            async with async_timeout.timeout(CONVERSATION_TIMEOUT_SECONDS):
+            async with async_timeout.timeout(CONNECT_TIMEOUT_SECONDS):
                 async with session.post(url, json=payload, headers=headers) as resp:
                     if resp.status == 401 or resp.status == 403:
                         return "invalid_auth"

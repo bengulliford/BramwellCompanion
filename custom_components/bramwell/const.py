@@ -36,10 +36,27 @@ DEFAULT_KOKORO_VOICE: Final = "bm_george"
 CONVERSATION_ENDPOINT: Final = "/api/conversation/process"
 """Brain HA-conversation-agent adapter (Sprint 10 N1, PR #73)."""
 
-CONVERSATION_TIMEOUT_SECONDS: Final = 5.0
-"""Hard timeout on each Brain POST. The Voice PE flow target is 2.5–3.0s
-wake-to-first-audio per 02-PRODUCT-SPEC.md:132 — anything past 5s on the
-Brain stage alone is a failure mode, not slow success."""
+CONVERSATION_TIMEOUT_SECONDS: Final = 30.0
+"""Hard timeout on each per-turn Brain conversation POST. The Voice PE
+flow target is 2.5–3.0s wake-to-first-audio per 02-PRODUCT-SPEC.md:132,
+but with Gemini + tool calls + state lookups the realistic envelope is
+4–8s — clipping at 5s turns "slightly slow" into HTTP 499 (client-
+closed) and intermittent turn failures (observed 2026-05-19 in live
+testing). 30s aligns with the HA convention for LLM-backed conversation
+agents (Google Generative AI / OpenAI / Ollama integrations all use
+30–60s) and treats *exceeding* this window as the real failure mode,
+not 5s.
+
+NOTE — config-flow setup uses CONNECT_TIMEOUT_SECONDS below, NOT this
+constant. PR #245 review (round 1, P3) flagged that the setup-flow
+connectivity check would otherwise inherit 30s, so a misconfigured host
+shows a long spinner before "can't connect". Setup wants fast-fail."""
+
+CONNECT_TIMEOUT_SECONDS: Final = 5.0
+"""Setup-time connectivity-check timeout. A one-shot ping in the config
+flow's user-form submit, NOT a per-conversation-turn ceiling. Stays at
+5s so a misconfigured host / port / token returns "cannot_connect"
+quickly instead of dragging the integration-add dialog to 30s."""
 
 KOKORO_TTS_ENDPOINT: Final = "/v1/audio/speech"
 """Kokoro's OpenAI-compatible TTS endpoint."""

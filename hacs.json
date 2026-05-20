@@ -2,5 +2,7 @@
   "name": "Bramwell Companion",
   "homeassistant": "2024.12.0",
   "render_readme": true,
-  "zip_release": false
+  "zip_release": false,
+  "country": ["US", "GB"],
+  "hacs": "1.34.0"
 }
