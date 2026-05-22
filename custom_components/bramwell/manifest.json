@@ -1,7 +1,7 @@
 {
   "domain": "bramwell",
   "name": "Bramwell Companion",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "documentation": "https://github.com/bengulliford/BramwellCompanion",
   "issue_tracker": "https://github.com/bengulliford/BramwellCompanion/issues",
   "codeowners": ["@bengulliford"],
@@ -10,5 +10,5 @@
   "integration_type": "service",
   "dependencies": ["conversation", "tts"],
   "requirements": [],
-  "homeassistant": "2023.4.0"
+  "homeassistant": "2024.12.0"
 }

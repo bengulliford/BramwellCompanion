@@ -94,10 +94,19 @@ class BramwellHealthCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @callback
     def record_turn(self, command: str, response: str) -> None:
-        """Update last-command / last-response in-process from the conversation entity."""
+        """Update last-command / last-response in-process from the conversation entity.
+
+        Status is owned by the 30s health poll, NOT by conversation turns.
+        Hardcoding ``status="online"`` here clobbered a ``degraded``/``offline``
+        reading on every turn — a voice turn while the Brain is degraded would
+        flip ``sensor.bramwell_alfred_status`` to ``online`` and break any
+        automation built on it. Preserve the last polled status instead; if no
+        poll has succeeded yet it stays unknown until the next 30s cycle.
+        """
         self._last_command = command
         self._last_response = response
-        self.async_set_updated_data(self._compose_data(status="online"))
+        last_status = (self.data or {}).get("status")
+        self.async_set_updated_data(self._compose_data(status=last_status))
 
     async def _async_update_data(self) -> dict[str, Any]:
         session = async_get_clientsession(self.hass)
@@ -114,7 +123,7 @@ class BramwellHealthCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"Brain unreachable: {err}") from err
         return self._compose_data(status="online")
 
-    def _compose_data(self, status: str) -> dict[str, Any]:
+    def _compose_data(self, status: str | None) -> dict[str, Any]:
         return {
             "status": status,
             "last_command": self._last_command,
