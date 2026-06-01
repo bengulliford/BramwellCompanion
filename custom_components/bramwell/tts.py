@@ -27,7 +27,6 @@ from homeassistant.components.tts import (
     Voice,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import MATCH_ALL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -42,6 +41,17 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# HA's voice-pipeline picker (tts.websocket_list_engines) only marks a TTS
+# engine selectable when ``language_util.matches(pipeline_language,
+# supported_languages, country)`` returns a non-empty list. MATCH_ALL ("*") is
+# NOT honoured for TTS engines the way it is for conversation agents, so
+# returning it greys Alfred out of the picker (the symptom hit 2026-06-01 —
+# the engine registered with a voice catalog but stayed unselectable). Enumerate
+# real codes instead. Launch line-up is English (the bm_* British / af_*
+# American Kokoro voices); add other-language codes here when non-English voices
+# are surfaced. Verified against HA core homeassistant/components/tts/__init__.py.
+_SUPPORTED_LANGUAGES: list[str] = ["en-GB", "en-US", "en"]
 
 
 # British-only subset of Kokoro v0.19's bundled voice catalog. HA's
@@ -110,10 +120,11 @@ class BramwellAlfredTts(TextToSpeechEntity):
         # to leak the Brain's bearer to a third service.
 
     @property
-    def supported_languages(self) -> list[str] | str:
-        # MATCH_ALL — Kokoro's voice models speak whatever language the
-        # voice is trained on; HA's pipeline language is informational only.
-        return MATCH_ALL
+    def supported_languages(self) -> list[str]:
+        # English-only for launch — see _SUPPORTED_LANGUAGES. Kokoro speaks
+        # the voice's trained language regardless; HA uses this list only to
+        # decide whether the engine is selectable for the pipeline language.
+        return list(_SUPPORTED_LANGUAGES)
 
     @property
     def default_language(self) -> str:
