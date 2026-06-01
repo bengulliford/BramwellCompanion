@@ -10,9 +10,6 @@ DOMAIN: Final = "bramwell"
 CONF_BRAIN_URL: Final = "brain_url"
 """Config-flow key for the user-supplied Bramwell Brain URL."""
 
-CONF_API_TOKEN: Final = "api_token"
-"""Config-flow key for the long-lived Brain bearer token."""
-
 CONF_KOKORO_URL: Final = "kokoro_url"
 """Config-flow key for the optional Kokoro TTS endpoint. Empty disables
 Bramwell TTS — users on Path B (community Wyoming-Kokoro HA add-on) or
@@ -43,7 +40,7 @@ but with Gemini + tool calls + state lookups the realistic envelope is
 4–8s — clipping at 5s turns "slightly slow" into HTTP 499 (client-
 closed) and intermittent turn failures (observed 2026-05-19 in live
 testing). 30s aligns with the HA convention for LLM-backed conversation
-agents (Google Generative AI / OpenAI / Ollama integrations all use
+agents (Google Generative AI / OpenAI integrations all use
 30–60s) and treats *exceeding* this window as the real failure mode,
 not 5s.
 
@@ -55,7 +52,7 @@ shows a long spinner before "can't connect". Setup wants fast-fail."""
 CONNECT_TIMEOUT_SECONDS: Final = 5.0
 """Setup-time connectivity-check timeout. A one-shot ping in the config
 flow's user-form submit, NOT a per-conversation-turn ceiling. Stays at
-5s so a misconfigured host / port / token returns "cannot_connect"
+5s so a misconfigured host / port returns "cannot_connect"
 quickly instead of dragging the integration-add dialog to 30s."""
 
 KOKORO_TTS_ENDPOINT: Final = "/v1/audio/speech"

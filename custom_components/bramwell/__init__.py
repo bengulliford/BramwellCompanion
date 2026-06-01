@@ -32,9 +32,9 @@ _BASE_PLATFORMS: list[Platform] = [Platform.CONVERSATION, Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Bramwell companion from a config entry.
 
-    The entry's ``data`` carries ``brain_url`` + ``api_token`` (always),
-    plus optional ``kokoro_url`` + ``kokoro_voice`` for users who want
-    the canonical Alfred voice via Bramwell-managed Kokoro. Per-entry
+    The entry's ``data`` carries ``brain_url`` (always), plus optional
+    ``kokoro_url`` + ``kokoro_voice`` for users who want the canonical
+    Alfred voice via Bramwell-managed Kokoro. Per-entry
     runtime state lives on ``hass.data[DOMAIN][entry.entry_id]`` so
     multiple Brain hosts could be configured in the future without code
     changes.

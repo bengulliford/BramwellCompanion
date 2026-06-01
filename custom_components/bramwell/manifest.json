@@ -1,7 +1,7 @@
 {
   "domain": "bramwell",
   "name": "Bramwell Companion",
-  "version": "0.2.1",
+  "version": "0.4.0",
   "documentation": "https://github.com/bengulliford/BramwellCompanion",
   "issue_tracker": "https://github.com/bengulliford/BramwellCompanion/issues",
   "codeowners": ["@bengulliford"],

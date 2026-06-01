@@ -32,7 +32,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .const import CONF_API_TOKEN, CONF_BRAIN_URL, DOMAIN
+from .const import CONF_BRAIN_URL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,11 +84,10 @@ class BramwellHealthCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"bramwell_{entry.entry_id}",
+            name=f"bramwell_{entry.unique_id or entry.entry_id}",
             update_interval=SCAN_INTERVAL,
         )
         self._brain_url: str = entry.data[CONF_BRAIN_URL]
-        self._api_token: str = entry.data[CONF_API_TOKEN]
         self._last_command: str | None = None
         self._last_response: str | None = None
 
@@ -110,11 +109,15 @@ class BramwellHealthCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         session = async_get_clientsession(self.hass)
-        url = f"{self._brain_url}/api/health"
-        headers = {"Authorization": f"Bearer {self._api_token}"}
+        # strict=true makes /api/health return 503 when a load-bearing component
+        # (DB / HA WebSocket) is down, so the ``>=500 -> "degraded"`` mapping below
+        # reflects real health instead of always reading 200 -> "online". An older
+        # Brain ignores the param and still returns 200, so this stays
+        # backward-compatible. (Observability review 2026-05-25 #3.)
+        url = f"{self._brain_url}/api/health?strict=true"
         try:
             async with async_timeout.timeout(HEALTH_TIMEOUT_SECONDS):
-                async with session.get(url, headers=headers) as resp:
+                async with session.get(url) as resp:
                     if resp.status >= 500:
                         return self._compose_data(status="degraded")
                     if resp.status >= 400:
@@ -153,7 +156,7 @@ class AlfredStatusSensor(_BramwellSensorBase):
         self, coordinator: BramwellHealthCoordinator, entry: ConfigEntry
     ) -> None:
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.entry_id}_alfred_status"
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_alfred_status"
 
     @property
     def native_value(self) -> str | None:
@@ -170,7 +173,7 @@ class LastCommandSensor(_BramwellSensorBase):
         self, coordinator: BramwellHealthCoordinator, entry: ConfigEntry
     ) -> None:
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.entry_id}_last_command"
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_last_command"
 
     @property
     def native_value(self) -> str | None:
@@ -187,7 +190,7 @@ class LastResponseSensor(_BramwellSensorBase):
         self, coordinator: BramwellHealthCoordinator, entry: ConfigEntry
     ) -> None:
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.entry_id}_last_response"
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_last_response"
 
     @property
     def native_value(self) -> str | None:

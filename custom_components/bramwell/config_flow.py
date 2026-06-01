@@ -1,9 +1,8 @@
 """Config flow for Bramwell companion.
 
-Captures the Brain URL + long-lived bearer token and validates them with a
-lightweight ping against the conversation endpoint before persisting. A
-typo or wrong token surfaces here, not later as a silent failure inside
-HA's Assist pipeline.
+Captures the Brain URL and validates it with a lightweight ping against
+the conversation endpoint before persisting. A typo or wrong URL surfaces
+here, not later as a silent failure inside HA's Assist pipeline.
 """
 
 from __future__ import annotations
@@ -18,7 +17,6 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    CONF_API_TOKEN,
     CONF_BRAIN_URL,
     CONF_KOKORO_URL,
     CONF_KOKORO_VOICE,
@@ -42,19 +40,15 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Single-step user flow: collect URL + token, validate, create entry."""
+        """Single-step user flow: collect URL, validate, create entry."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             brain_url: str = user_input[CONF_BRAIN_URL].rstrip("/")
-            api_token: str = user_input[CONF_API_TOKEN]
             kokoro_url_raw = (user_input.get(CONF_KOKORO_URL) or "").strip()
             kokoro_url = kokoro_url_raw.rstrip("/") if kokoro_url_raw else ""
-            kokoro_voice = (
-                user_input.get(CONF_KOKORO_VOICE) or DEFAULT_KOKORO_VOICE
-            ).strip() or DEFAULT_KOKORO_VOICE
 
-            error_key = await self._validate_brain(brain_url, api_token)
+            error_key = await self._validate_brain(brain_url)
             if error_key is None and kokoro_url:
                 # Kokoro is optional — only validate when the user actually
                 # filled it in. Path B / Path C users leave it blank and
@@ -70,9 +64,12 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
                 data = {
                     CONF_BRAIN_URL: brain_url,
-                    CONF_API_TOKEN: api_token,
                     CONF_KOKORO_URL: kokoro_url,  # "" when disabled
-                    CONF_KOKORO_VOICE: kokoro_voice,
+                    # Voice is George-only for launch — not surfaced in the
+                    # setup form. Persist the canonical default so the TTS
+                    # entity reads a concrete voice id; the other Kokoro
+                    # voices stay in tts.py for a later release.
+                    CONF_KOKORO_VOICE: DEFAULT_KOKORO_VOICE,
                 }
                 return self.async_create_entry(
                     title=f"Bramwell ({brain_url})",
@@ -88,16 +85,14 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
         schema = vol.Schema(
             {
                 vol.Required(CONF_BRAIN_URL, default=DEFAULT_BRAIN_URL): str,
-                vol.Required(CONF_API_TOKEN): str,
                 vol.Optional(CONF_KOKORO_URL, default=""): str,
-                vol.Optional(CONF_KOKORO_VOICE, default=DEFAULT_KOKORO_VOICE): str,
             }
         )
         return self.async_show_form(
             step_id="user", data_schema=schema, errors=errors
         )
 
-    async def _validate_brain(self, brain_url: str, api_token: str) -> str | None:
+    async def _validate_brain(self, brain_url: str) -> str | None:
         """Round-trip a ping against /api/conversation/process.
 
         Returns ``None`` on success; on failure returns one of the
@@ -106,7 +101,6 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
         """
         session = async_get_clientsession(self.hass)
         url = f"{brain_url}{CONVERSATION_ENDPOINT}"
-        headers = {"Authorization": f"Bearer {api_token}"}
         payload = {
             "text": "ping",
             "conversation_id": "bramwell-companion-config-flow",
@@ -114,9 +108,7 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
         }
         try:
             async with async_timeout.timeout(CONNECT_TIMEOUT_SECONDS):
-                async with session.post(url, json=payload, headers=headers) as resp:
-                    if resp.status == 401 or resp.status == 403:
-                        return "invalid_auth"
+                async with session.post(url, json=payload) as resp:
                     if resp.status >= 400:
                         _LOGGER.warning(
                             "Bramwell brain returned %s during config validation",
@@ -125,8 +117,8 @@ class BramwellConfigFlow(ConfigFlow, domain=DOMAIN):
                         return "cannot_connect"
                     body = await resp.json()
                     # Lightweight contract check — must look like an HA
-                    # IntentResponse envelope. Anything else is "wrong
-                    # endpoint" not "wrong token."
+                    # IntentResponse envelope. Anything else is the wrong
+                    # endpoint, not a Bramwell brain.
                     if "response" not in body or "conversation_id" not in body:
                         return "unexpected_response"
         except aiohttp.ClientError as err:

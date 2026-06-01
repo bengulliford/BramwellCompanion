@@ -29,7 +29,7 @@ Bramwell stack — see
    **Download**.
 5. Restart Home Assistant.
 6. Go to **Settings → Devices & services → Add integration** and search
-   for **Bramwell**. Enter your brain URL + API token.
+   for **Bramwell**. Enter your brain URL.
 
 HACS Default repository submission is a Q4 2026 milestone, not a launch
 dependency — the custom repo path above is the supported install on
@@ -94,10 +94,6 @@ says 'good night,' run the bedtime scene").
 HA add-on. For other deployments, point at wherever the brain's HTTP
 port is reachable from HA. The brain doesn't need to be on the same
 machine — anywhere on the network is fine.
-
-**`invalid_auth` during setup.** Issue a new long-lived API token in
-the Bramwell dashboard (**Settings → API tokens**) and paste it during
-the config flow.
 
 **Alfred doesn't appear in the Assist conversation-agent dropdown.**
 Restart HA after installing the integration. The conversation entity

@@ -33,7 +33,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.intent import IntentResponse, IntentResponseType
 
 from .const import (
-    CONF_API_TOKEN,
     CONF_BRAIN_URL,
     CONVERSATION_ENDPOINT,
     CONVERSATION_TIMEOUT_SECONDS,
@@ -72,16 +71,17 @@ class BramwellConversationAgent(ConversationEntity, AbstractConversationAgent):
     _attr_name = "Alfred"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        """Init agent with config-entry-scoped Brain URL + token.
+        """Init agent with the config-entry-scoped Brain URL.
 
         ``self.hass`` is set by HA's Entity base class in
         ``async_added_to_hass()`` — assigning here would shadow the
-        lifecycle-tracked field, so we keep just the entry/URL/token.
+        lifecycle-tracked field, so we keep just the entry/URL.
         """
         self._entry = entry
-        self._attr_unique_id = entry.entry_id
+        # Brain-URL-keyed unique_id (falls back to entry_id) so re-adding
+        # the integration reclaims this entity instead of orphaning it.
+        self._attr_unique_id = entry.unique_id or entry.entry_id
         self._brain_url: str = entry.data[CONF_BRAIN_URL]
-        self._api_token: str = entry.data[CONF_API_TOKEN]
 
     @property
     def supported_languages(self) -> list[str] | Literal["*"]:
@@ -94,7 +94,6 @@ class BramwellConversationAgent(ConversationEntity, AbstractConversationAgent):
         """Forward a transcript to the Brain and translate the reply."""
         session = async_get_clientsession(self.hass)
         url = f"{self._brain_url}{CONVERSATION_ENDPOINT}"
-        headers = {"Authorization": f"Bearer {self._api_token}"}
 
         # HA passes ``conversation_id=None`` for the first turn of a new
         # conversation. The Brain handles that case by synthesizing a
@@ -110,7 +109,7 @@ class BramwellConversationAgent(ConversationEntity, AbstractConversationAgent):
 
         try:
             async with async_timeout.timeout(CONVERSATION_TIMEOUT_SECONDS):
-                async with session.post(url, json=payload, headers=headers) as resp:
+                async with session.post(url, json=payload) as resp:
                     if resp.status >= 400:
                         _LOGGER.warning(
                             "Brain returned HTTP %s for conversation: %s",

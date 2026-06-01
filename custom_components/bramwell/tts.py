@@ -57,11 +57,11 @@ _LOGGER = logging.getLogger(__name__)
 # Japanese / Portuguese / Mandarin sets (curl
 # http://<kokoro>:8880/v1/audio/voices to enumerate yours), but
 # Bramwell is the British-butler brand — restricting the engine
-# picker to British voices keeps the UI on-brand. Users who want a
-# non-British voice can paste any Kokoro voice id into the
-# ``kokoro_voice`` field of the companion config flow (or pass it
-# as the per-call ``voice`` option), and synthesis will still work;
-# the engine picker just won't surface those choices.
+# picker to British voices keeps the UI on-brand. The kokoro_voice
+# setup-form field is hidden for launch (the entry persists the
+# canonical default), but the per-call ``voice`` option still accepts
+# any Kokoro voice id (e.g. from an automation) and synthesis will
+# still work; the engine picker just won't surface those choices.
 #
 # bm_george is Alfred's canonical default. Kokoro picks the trained
 # language regardless of HA's pipeline language, so we return the
@@ -87,16 +87,21 @@ class BramwellAlfredTts(TextToSpeechEntity):
     """HA TTS entity that proxies to a Kokoro OpenAI-compatible endpoint."""
 
     _attr_has_entity_name = True
-    _attr_name = "Alfred"
+    # Distinct from the conversation agent (plain "Alfred") so the two
+    # don't collide as identically-named entities in HA's lists/pickers.
+    _attr_name = "Alfred Voice"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         # ``self.hass`` is set by HA's Entity base class in
         # ``async_added_to_hass()`` — assigning here would shadow the
         # lifecycle-tracked field.
         self._entry = entry
-        # Unique-id ensures HA registers a stable entity per config entry —
-        # users with two Brain hosts wouldn't collide on the TTS entity.
-        self._attr_unique_id = f"{entry.entry_id}_alfred_tts"
+        # Key the unique-id off the brain URL (the config entry's
+        # unique_id), not the entry_id — so deleting + re-adding the
+        # integration reclaims the same entity instead of leaving a stale
+        # ``unavailable`` ghost behind. Falls back to entry_id for entries
+        # without a unique_id (e.g. test mocks).
+        self._attr_unique_id = f"{entry.unique_id or entry.entry_id}_alfred_tts"
         self._kokoro_url: str = entry.data[CONF_KOKORO_URL].rstrip("/")
         self._voice: str = entry.data.get(CONF_KOKORO_VOICE) or DEFAULT_KOKORO_VOICE
         # Kokoro auth is intentionally NOT forwarded from the Brain token.
