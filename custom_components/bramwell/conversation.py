@@ -1,7 +1,8 @@
 """Conversation entity — the core Voice PE integration point.
 
-When a HA Voice PE puck wakes ("Hey Alfred"), HA's Assist pipeline runs
-its STT, then forwards the transcript to whichever conversation.agent is
+When a HA Voice PE puck wakes (on its on-device wake word — "Alfred"
+once the trained model is flashed there), HA's Assist pipeline runs its
+STT, then forwards the transcript to whichever conversation.agent is
 selected. This entity registers as that agent and proxies every turn to
 the Brain's ``/api/conversation/process`` endpoint, then translates the
 HA-shaped envelope returned by the Brain back into a HA

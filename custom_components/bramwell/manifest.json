@@ -1,14 +1,13 @@
 {
   "domain": "bramwell",
   "name": "Bramwell Companion",
-  "version": "0.4.1",
-  "documentation": "https://github.com/bengulliford/BramwellCompanion",
-  "issue_tracker": "https://github.com/bengulliford/BramwellCompanion/issues",
   "codeowners": ["@bengulliford"],
   "config_flow": true,
-  "iot_class": "local_polling",
+  "dependencies": ["conversation", "tts", "wake_word"],
+  "documentation": "https://github.com/bengulliford/BramwellCompanion",
   "integration_type": "service",
-  "dependencies": ["conversation", "tts"],
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/bengulliford/BramwellCompanion/issues",
   "requirements": [],
-  "homeassistant": "2024.12.0"
+  "version": "0.5.0"
 }
