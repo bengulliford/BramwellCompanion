@@ -10,7 +10,7 @@
         },
         "data_description": {
           "brain_url": "The URL where your Bramwell brain is reachable from Home Assistant. Default works when Bramwell runs as a HA add-on.",
-          "kokoro_url": "Optional. URL of a Kokoro TTS endpoint (e.g. `http://homeassistant.local:8880` for Bramwell's docker-compose `voice` profile). Leave blank to use HA's default TTS or the community Wyoming-Kokoro add-on instead."
+          "kokoro_url": "Optional. Address of a Kokoro-compatible TTS endpoint. When Bramwell's docker-compose voice profile runs on the Home Assistant host, Kokoro listens on port 8880. Leave blank to use Home Assistant's default TTS or the community Wyoming-Kokoro add-on instead."
         }
       }
     },

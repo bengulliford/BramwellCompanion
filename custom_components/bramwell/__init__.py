@@ -26,7 +26,18 @@ _LOGGER = logging.getLogger(__name__)
 # in a Kokoro URL during config flow. Skipping the platform forward keeps
 # "Bramwell Alfred" out of HA's TTS dropdown for users on Path B/C
 # (community Wyoming-Kokoro add-on or HA's default TTS).
-_BASE_PLATFORMS: list[Platform] = [Platform.CONVERSATION, Platform.SENSOR]
+#
+# WAKE_WORD forwards unconditionally: whether a wake-word entity actually
+# registers depends on a bundled model file + an importable runtime, and
+# that probe involves disk + heavy imports — wake_word.py owns it and
+# degrades to a no-op with a clear log line (never a crashed setup) when
+# the pieces are missing. See wake_word.py's module docstring for the
+# on-device (Voice PE) vs HA-side (streaming satellites) split.
+_BASE_PLATFORMS: list[Platform] = [
+    Platform.CONVERSATION,
+    Platform.SENSOR,
+    Platform.WAKE_WORD,
+]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

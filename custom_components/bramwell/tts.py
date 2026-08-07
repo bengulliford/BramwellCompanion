@@ -46,11 +46,14 @@ _LOGGER = logging.getLogger(__name__)
 # engine selectable when ``language_util.matches(pipeline_language,
 # supported_languages, country)`` returns a non-empty list. MATCH_ALL ("*") is
 # NOT honoured for TTS engines the way it is for conversation agents, so
-# returning it greys Alfred out of the picker (the symptom hit 2026-06-01 —
-# the engine registered with a voice catalog but stayed unselectable). Enumerate
-# real codes instead. Launch line-up is English (the bm_* British / af_*
-# American Kokoro voices); add other-language codes here when non-English voices
-# are surfaced. Verified against HA core homeassistant/components/tts/__init__.py.
+# returning it greys Alfred out of the picker even though the engine registered
+# with a voice catalog. Enumerate real codes instead. The shipped voices are
+# British English (bm_*/bf_* Kokoro), hence "en-GB"; the region-less "en" keeps
+# the engine selectable for any English pipeline (en-US, en-AU, …) — a
+# region-less tag matches any region of that language, while "en-GB" alone would
+# NOT match an "en-US" pipeline. Those users just get the British voice (the
+# intended Alfred brand). Add codes here when non-English voices are surfaced.
+# Verified against HA core tts/__init__.py + util/language.py.
 _SUPPORTED_LANGUAGES: list[str] = ["en-GB", "en-US", "en"]
 
 

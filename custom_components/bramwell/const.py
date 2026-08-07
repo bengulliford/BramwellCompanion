@@ -63,9 +63,25 @@ KOKORO_TIMEOUT_SECONDS: Final = 15.0
 150–300ms; 15s gives headroom for cold-start / long replies without
 hanging HA's TTS pipeline indefinitely."""
 
-WAKE_WORD_PHRASE: Final = "Hey Alfred"
-"""Single locked wake-word phrase for v1 (Sprint 10)."""
+WAKE_WORD_PHRASE: Final = "Alfred"
+"""Single locked wake-word phrase for v1 — exactly "Alfred", NOT
+"Hey Alfred" (founder decision, 2026-08-07). Advertised by wake_word.py
+when alfred.tflite ships without a manifest sidecar; a manifest's own
+``wake_word`` field (what the model was actually trained on) wins."""
 
 WAKE_WORD_MODEL_FILENAME: Final = "alfred.tflite"
-"""microWakeWord model filename. Bundled by Sprint 10 N3; until then a
-placeholder file documents the descope path."""
+"""Custom microWakeWord model filename. Ben trains it on the
+microWakeWord trainer; it lands in wake_words/ together with its
+``alfred.json`` manifest sidecar (phrase + tuning). Not bundled yet —
+wake_word.py degrades gracefully until it exists."""
+
+WAKE_WORD_PLACEHOLDER_FILENAME: Final = "alfred_placeholder.tflite"
+"""Descope-path fallback filename (locked). wake_word.py prefers
+WAKE_WORD_MODEL_FILENAME and selects this when it's the only file;
+wake_word_training/download_placeholder.py drops the openWakeWord
+placeholder at this path."""
+
+WAKE_WORD_PLACEHOLDER_PHRASE: Final = "Hey Jarvis"
+"""Advertised phrase when the placeholder ships without a manifest
+sidecar. hey_jarvis is the locked canonical placeholder choice; a
+manifest's ``wake_word`` field overrides this."""
