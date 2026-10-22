@@ -1,5 +1,7 @@
 # Bramwell Companion
 
+[![Tip via PayPal](https://img.shields.io/badge/Tip%20via%20PayPal-0070BA?logo=paypal&style=flat&logoColor=white)](https://paypal.me/bengulliford)
+
 Registers Alfred (the Bramwell brain) as a Home Assistant
 `conversation.agent` so any HA Assist surface — Voice PE pucks, the
 mobile app's voice button, the dashboard Assist icon — can talk to
